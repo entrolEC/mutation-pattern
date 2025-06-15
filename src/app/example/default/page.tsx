@@ -1,7 +1,7 @@
 'use client';
 import dynamic from 'next/dynamic';
 
-const PostForm = dynamic(() => import('@/components/domain/example/1/post-form'), {
+const PostForm = dynamic(() => import('@/components/domain/example/default/post-form'), {
   ssr: false,
   loading: () => <p>loading</p>,
 });

@@ -19,7 +19,7 @@ type CreatePostInput = z.infer<typeof schema>;
 
 // 2️⃣ 서버에 게시글을 저장하는 비동기 함수
 async function createPost(data: CreatePostInput) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
+  const res = await fetch('/api/posts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -30,12 +30,11 @@ async function createPost(data: CreatePostInput) {
     throw new Error(message || '서버 오류가 발생했습니다.');
   }
 
-  // { id, title, body } 형태의 게시글을 반환한다고 가정
-  return (await res.json()) as { id: string; title: string; body: string };
+  return (await res.json()) as Post;
 }
 
 // 3️⃣ 게시글 작성 폼 컴포넌트
-export default function PostForm() {
+export default function CreatePostForm() {
   const queryClient = useQueryClient();
 
   const {
@@ -49,6 +48,12 @@ export default function PostForm() {
 
   const mutation = useMutation({
     mutationFn: createPost,
+    // 7. 입력된 정보가 서버에 저장됨 + 캐시 교체
+    onSuccess: (savedPost) => {
+      // temp- 로 시작하는 임시 게시글을 실제 게시글로 교체
+      console.log('savedPost', savedPost);
+      queryClient.setQueryData<Array<Post>>(['posts'], (old = []) => [savedPost, ...old]);
+    },
   });
 
   const onSubmit = (data: CreatePostInput) => {
