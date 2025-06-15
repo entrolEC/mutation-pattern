@@ -1,14 +1,21 @@
-import PostList from '@/components/domain/example/post-list';
-import PostForm from '@/components/domain/example/1/post-form';
-import { Suspense } from 'react';
+'use client';
+import dynamic from 'next/dynamic';
+
+const PostForm = dynamic(() => import('@/components/domain/example/1/post-form'), {
+  ssr: false,
+  loading: () => <p>loading</p>,
+});
+
+const PostList = dynamic(() => import('@/components/domain/example/post-list'), {
+  ssr: false,
+  loading: () => <p>loading</p>,
+});
 
 export default function Page() {
   return (
     <div className="flex">
       <div className="flex-1">
-        <Suspense fallback={<p>loading</p>}>
-          <PostList />
-        </Suspense>
+        <PostList />
       </div>
       <div className="flex-1">
         <PostForm />

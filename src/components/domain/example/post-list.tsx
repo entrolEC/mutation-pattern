@@ -8,7 +8,7 @@ type Post = {
 };
 
 async function fetchPosts(): Promise<Post[]> {
-  const res = await fetch('/api/posts');
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`);
   if (!res.ok) {
     throw new Error(`서버 오류: ${res.status}`);
   }

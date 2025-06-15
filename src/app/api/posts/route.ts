@@ -40,7 +40,6 @@ export async function GET() {
   try {
     // 최신 10개를 가져온다
     const keys = await redis.zrange('posts:index', 0, 9, { rev: true });
-    console.log('keys', keys);
     const posts = await Promise.all(keys.map((k) => redis.get(k as string)));
     return NextResponse.json(posts, { status: 200 });
   } catch (err) {
