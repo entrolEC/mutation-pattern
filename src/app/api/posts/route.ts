@@ -41,7 +41,7 @@ export async function GET() {
     // 최신 10개를 가져온다
     const keys = await redis.zrange('posts:index', 0, 9, { rev: true });
     const posts = await Promise.all(keys.map((k) => redis.get(k as string)));
-    return NextResponse.json(posts, { status: 200 });
+    return NextResponse.json(posts.reverse(), { status: 200 });
   } catch (err) {
     return NextResponse.json({ message: '데이터 조회 중 오류가 발생했습니다.' }, { status: 500 });
   }

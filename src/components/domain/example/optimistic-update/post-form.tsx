@@ -3,12 +3,12 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'react-hot-toast';
+import { useSmartMutation } from '@/lib/useSmartMutation';
 
 // 1️⃣ 클라이언트 측 필드 검증 스키마
 const schema = z.object({
@@ -48,47 +48,7 @@ export default function CreatePostForm() {
     resolver: zodResolver(schema),
   });
 
-  const mutation = useMutation({
-    mutationFn: createPost,
-
-    // 3. 입력된 게시글이 즉각적으로 등록된것으로 보이도록 업데이트함 (optimistic update)
-    onMutate: async (newPost) => {
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
-
-      const previousPosts = queryClient.getQueryData<Array<Post>>(['posts']);
-
-      queryClient.setQueryData<Array<Post>>(['posts'], (old = []) => [
-        { id: `temp-${Date.now()}`, ...newPost },
-        ...old,
-      ]);
-
-      // 폼 초기화
-      reset();
-
-      return { previousPosts };
-    },
-
-    // 6. 4또는 5이 만족하면 optimistic 업데이트를 롤백함
-    onError: (error: Error, _newPost, context) => {
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
-      }
-      toast.error(error.message);
-    },
-
-    // 7. 입력된 정보가 서버에 저장됨 + 캐시 교체
-    onSuccess: (savedPost) => {
-      // temp- 로 시작하는 임시 게시글을 실제 게시글로 교체
-      queryClient.setQueryData<Array<Post & { id?: string }>>(['posts'], (old = []) =>
-        old.map((post) => (post.id?.startsWith('temp-') ? savedPost : post))
-      );
-    },
-
-    // 성공/실패 관계없이 실행 — 서버 데이터와 동기화
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    },
-  });
+  const mutation = useSmartMutation({ queryKey: ['posts'], mutationFn: createPost, isList: true });
 
   const onSubmit = (data: CreatePostInput) => {
     mutation.mutate(data);

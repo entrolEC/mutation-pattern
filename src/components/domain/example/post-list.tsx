@@ -31,7 +31,7 @@ export default function PostList() {
       <h1 className="mb-4 text-xl font-bold">게시글 목록</h1>
       <ul className="space-y-2">
         {posts && posts.length > 0 ? (
-          posts.map((post, idx) => (
+          posts.toReversed().map((post, idx) => (
             <li key={idx} className="rounded border p-4 shadow transition hover:bg-gray-50">
               {post.title}
             </li>

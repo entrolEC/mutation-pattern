@@ -51,8 +51,7 @@ export default function CreatePostForm() {
     // 7. 입력된 정보가 서버에 저장됨 + 캐시 교체
     onSuccess: (savedPost) => {
       // temp- 로 시작하는 임시 게시글을 실제 게시글로 교체
-      console.log('savedPost', savedPost);
-      queryClient.setQueryData<Array<Post>>(['posts'], (old = []) => [savedPost, ...old]);
+      queryClient.setQueryData<Array<Post>>(['posts'], (old = []) => [...old, savedPost]);
     },
   });
 
