@@ -2,39 +2,14 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { CreatePostInput, schema } from '@/lib/types';
+import { createPost } from '@/lib/fetcher';
 
-// 1️⃣ 클라이언트 측 필드 검증 스키마
-const schema = z.object({
-  title: z.string().min(1, { message: '제목을 입력하세요' }),
-  body: z.string().min(1, { message: '내용을 입력하세요' }),
-});
-
-type CreatePostInput = z.infer<typeof schema>;
-
-// 2️⃣ 서버에 게시글을 저장하는 비동기 함수
-async function createPost(data: CreatePostInput) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    const message = await res.text();
-    throw new Error(message || '서버 오류가 발생했습니다.');
-  }
-
-  // { id, title, body } 형태의 게시글을 반환한다고 가정
-  return (await res.json()) as Post;
-}
-
-// 3️⃣ 게시글 작성 폼 컴포넌트
 export default function PostForm() {
   const queryClient = useQueryClient();
 
