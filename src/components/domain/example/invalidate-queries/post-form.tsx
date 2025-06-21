@@ -3,12 +3,11 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useSmartMutation } from '@/lib/useSmartMutation';
 
 // 1️⃣ 클라이언트 측 필드 검증 스키마
 const schema = z.object({
@@ -20,7 +19,7 @@ type CreatePostInput = z.infer<typeof schema>;
 
 // 2️⃣ 서버에 게시글을 저장하는 비동기 함수
 async function createPost(data: CreatePostInput) {
-  const res = await fetch('/api/posts', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -36,7 +35,7 @@ async function createPost(data: CreatePostInput) {
 }
 
 // 3️⃣ 게시글 작성 폼 컴포넌트
-export default function CreatePostForm() {
+export default function PostForm() {
   const queryClient = useQueryClient();
 
   const {
@@ -48,10 +47,13 @@ export default function CreatePostForm() {
     resolver: zodResolver(schema),
   });
 
-  const mutation = useSmartMutation({ queryKey: ['posts'], mutationFn: createPost, isCollection: true });
+  const mutation = useMutation({
+    mutationFn: createPost,
+  });
 
-  const onSubmit = (data: CreatePostInput) => {
-    mutation.mutate(data);
+  const onSubmit = async (data: CreatePostInput) => {
+    await mutation.mutateAsync(data);
+    queryClient.invalidateQueries({ queryKey: ['posts'] });
   };
 
   return (

@@ -19,7 +19,7 @@ type MutationContext<TReq> = {
  * @param options onSuccess, onError등 option을 오버라이드 할 수 있습니다.
  * @param onSuccessCallback onSuccess 콜백
  * @param disableOptimisticUpdate 낙관적 업데이트 비활성화 여부
- * @param isList 리스트 데이터를 다루는지에 대한 여부입니다.
+ * @param isCollection 콜랙션 데이터를 다루는지에 대한 여부입니다.
  */
 export function useSmartMutation<TRequest extends FieldValues, TResponse>({
   queryKey,
@@ -28,7 +28,7 @@ export function useSmartMutation<TRequest extends FieldValues, TResponse>({
   options,
   onSuccessCallback,
   disableOptimisticUpdate = false,
-  isList = false,
+  isCollection = false,
 }: {
   queryKey?: QueryKey;
   mutationFn: (data: TRequest) => Promise<TResponse>;
@@ -36,7 +36,7 @@ export function useSmartMutation<TRequest extends FieldValues, TResponse>({
   options?: Omit<UseMutationOptions<TResponse, any, TRequest, MutationContext<TRequest>>, 'mutationFn'>;
   onSuccessCallback?: (response: TResponse) => void;
   disableOptimisticUpdate?: boolean;
-  isList?: boolean;
+  isCollection?: boolean;
 }) {
   const mutationOptions: UseMutationOptions<TResponse, any, TRequest, MutationContext<TRequest>> = {
     mutationFn,
@@ -47,14 +47,14 @@ export function useSmartMutation<TRequest extends FieldValues, TResponse>({
           await queryClient.cancelQueries({ queryKey });
           const prevData = queryClient.getQueryData<any>(queryKey);
 
-          if (isList && prevData) {
+          if (isCollection && prevData) {
             const optimisticId = nanoid();
             const optimisticItem = { ...updatedData, __optimisticId: optimisticId };
 
             queryClient.setQueryData(queryKey, [...prevData, optimisticItem]);
 
             return { prevData, optimisticId, optimisticReq: updatedData };
-          } else if (!isList && prevData) {
+          } else if (!isCollection && prevData) {
             queryClient.setQueryData(queryKey, {
               ...prevData,
               ...updatedData,
@@ -66,7 +66,7 @@ export function useSmartMutation<TRequest extends FieldValues, TResponse>({
       }),
       /** ---------- success ---------- */
       onSuccess: (response, variable, context) => {
-        if (isList && queryKey) {
+        if (isCollection && queryKey) {
           queryClient.setQueryData<any[]>(queryKey, (old = []) =>
             old.map((item) => (item.__optimisticId === context?.optimisticId ? response : item))
           );
